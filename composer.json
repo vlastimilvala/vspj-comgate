@@ -1,0 +1,24 @@
+{
+  "name": "vlastimilvala/vspj-comgate",
+  "description": "Integrace Comgate platebni brany pro Symfony framework na VSPJ",
+  "type": "library",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Vlastimil Vala"
+    }
+  ],
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "comgate/sdk": "^1.6",
+    "symfony/http-foundation": "^4.4 || ^5.4",
+    "symfony/routing": "^4.4 || ^5.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vspj\\Comgate\\": "src/Vspj/Comgate/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
