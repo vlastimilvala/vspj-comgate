@@ -3,6 +3,7 @@
 namespace Vspj\Comgate\Base;
 
 use Comgate\SDK\Entity\Codes\PaymentStatusCode;
+use DateTime;
 
 class ComgatePlatbaStav
 {
@@ -26,6 +27,8 @@ class ComgatePlatbaStav
 
 	private bool $zaplaceno;
 
+	private ?DateTime $datumDokonceniPlatby;
+
 	public function __construct(string $platbaId, string $referenceId, string $stav, string $popisStavu)
 	{
 		$this->platbaId = $platbaId;
@@ -33,6 +36,7 @@ class ComgatePlatbaStav
 		$this->stav = $stav;
 		$this->popisStavu = $popisStavu;
 		$this->zaplaceno = $stav === PaymentStatusCode::PAID;
+		$this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
 	}
 
 	public function getPlatbaId(): string
@@ -58,6 +62,11 @@ class ComgatePlatbaStav
 	public function jeZaplaceno(): bool
 	{
 		return $this->zaplaceno;
+	}
+
+	public function getDatumDokonceniPlatby(): ?DateTime
+	{
+		return $this->datumDokonceniPlatby;
 	}
 
 }

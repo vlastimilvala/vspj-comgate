@@ -17,7 +17,7 @@ abstract class ComgateBase
 
 	protected const REFERENCE_ID_ATRIBUT = 'vspjPaymentRefId';
 
-	protected const TRANSACTION_ID_ATRIBUT = 'id';
+	protected const TRANSACTION_ID_ATRIBUT = 'paymentId';
 
 	protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
 	PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
