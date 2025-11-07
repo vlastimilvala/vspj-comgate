@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Vspj\Comgate\Base;
+namespace Vspj\PlatebniBrana\Comgate\Base;
 
 use Comgate\SDK\Entity\Codes\PaymentStatusCode;
 use DateTime;

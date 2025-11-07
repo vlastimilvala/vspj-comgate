@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Vspj\\Comgate\\": "src/Vspj/Comgate/"
+      "Vspj\\PlatebniBrana\\Comgate\\": "src/Vspj/Comgate/"
     }
   },
   "minimum-stability": "stable",

@@ -1,12 +1,12 @@
 <?php declare(strict_types = 1);
 
-namespace Vspj\Comgate;
+namespace Vspj\PlatebniBrana\Comgate;
 
-use Vspj\Comgate\Base\ComgateBase;
-use Vspj\Comgate\Base\ComgatePlatba;
-use Vspj\Comgate\Base\ComgatePlatbaStav;
-use Vspj\Comgate\Base\ComgateReturnRoute;
-use Vspj\Comgate\Exception\ComgateException;
+use Vspj\PlatebniBrana\Comgate\Base\ComgateBase;
+use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatba;
+use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatbaStav;
+use Vspj\PlatebniBrana\Comgate\Base\ComgateReturnRoute;
+use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Comgate\SDK\Entity\Codes\CategoryCode;
 use Comgate\SDK\Entity\Codes\CurrencyCode;
 use Comgate\SDK\Entity\Codes\DeliveryCode;

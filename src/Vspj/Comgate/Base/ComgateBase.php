@@ -1,8 +1,8 @@
 <?php declare(strict_types = 1);
 
-namespace Vspj\Comgate\Base;
+namespace Vspj\PlatebniBrana\Comgate\Base;
 
-use Vspj\Comgate\Exception\ComgateException;
+use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Comgate\SDK\Client;
 use Comgate\SDK\Comgate;
 use Comgate\SDK\Entity\Codes\PaymentMethodCode;
