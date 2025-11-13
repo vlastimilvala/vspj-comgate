@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
@@ -7,66 +9,86 @@ use DateTime;
 
 class ComgatePlatbaStav
 {
+    public const COMGATE_PLATBA_STAV_ZAPLACENO = 'Platba proběhla úspěšně';
 
-	public const COMGATE_PLATBA_STAV_ZAPLACENO = 'Platba proběhla úspěšně';
+    public const COMGATE_PLATBA_STAV_ZRUSENO = 'Požadavek byl zrušen';
 
-	public const COMGATE_PLATBA_STAV_ZRUSENO = 'Požadavek byl zrušen';
+    public const COMGATE_PLATBA_STAV_CEKAJICI = 'Čekáme na dokončení platby';
 
-	public const COMGATE_PLATBA_STAV_CEKAJICI = 'Čekáme na dokončení platby';
+    public const COMGATE_PLATBA_STAV_AUTORIZOVANO = 'Platba byla úspěšně autorizována';
 
-	public const COMGATE_PLATBA_STAV_AUTORIZOVANO = 'Platba byla úspěšně autorizována';
+    private string $platbaId;
 
-	private string $platbaId;
+    //vala04 - většinou to bude specifický symbol
+    private string $referenceId;
 
-	//vala04 - většinou to bude specifický symbol
-	private string $referenceId;
+    private ?string $vs;
 
-	private string $stav;
+    private string $metodaPlatby;
 
-	private string $popisStavu;
+    private string $stav;
 
-	private bool $zaplaceno;
+    private string $popisStavu;
 
-	private ?DateTime $datumDokonceniPlatby;
+    private bool $zaplaceno;
 
-	public function __construct(string $platbaId, string $referenceId, string $stav, string $popisStavu)
-	{
-		$this->platbaId = $platbaId;
-		$this->referenceId = $referenceId;
-		$this->stav = $stav;
-		$this->popisStavu = $popisStavu;
-		$this->zaplaceno = $stav === PaymentStatusCode::PAID;
-		$this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
-	}
+    private ?DateTime $datumDokonceniPlatby;
 
-	public function getPlatbaId(): string
-	{
-		return $this->platbaId;
-	}
+    public function __construct(
+        string $platbaId,
+        string $referenceId,
+        string $stav,
+        string $popisStavu,
+        string $metodaPlatby,
+        ?string $vs = null
+    ) {
+        $this->platbaId = $platbaId;
+        $this->referenceId = $referenceId;
+        $this->stav = $stav;
+        $this->popisStavu = $popisStavu;
+        $this->metodaPlatby = $metodaPlatby;
+        $this->vs = $vs;
+        $this->zaplaceno = $stav === PaymentStatusCode::PAID;
+        $this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
+    }
 
-	public function getReferenceId(): string
-	{
-		return $this->referenceId;
-	}
+    public function getPlatbaId(): string
+    {
+        return $this->platbaId;
+    }
 
-	public function getStav(): string
-	{
-		return $this->stav;
-	}
+    public function getReferenceId(): string
+    {
+        return $this->referenceId;
+    }
 
-	public function getPopisStavu(): string
-	{
-		return $this->popisStavu;
-	}
+    public function getVs(): ?string
+    {
+        return $this->vs;
+    }
 
-	public function jeZaplaceno(): bool
-	{
-		return $this->zaplaceno;
-	}
+    public function getMetodaPlatby(): string
+    {
+        return $this->metodaPlatby;
+    }
 
-	public function getDatumDokonceniPlatby(): ?DateTime
-	{
-		return $this->datumDokonceniPlatby;
-	}
+    public function getStav(): string
+    {
+        return $this->stav;
+    }
 
+    public function getPopisStavu(): string
+    {
+        return $this->popisStavu;
+    }
+
+    public function jeZaplaceno(): bool
+    {
+        return $this->zaplaceno;
+    }
+
+    public function getDatumDokonceniPlatby(): ?DateTime
+    {
+        return $this->datumDokonceniPlatby;
+    }
 }

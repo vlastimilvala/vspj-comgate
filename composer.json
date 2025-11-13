@@ -20,5 +20,8 @@
     }
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "require-dev": {
+    "squizlabs/php_codesniffer": "*"
+  }
 }

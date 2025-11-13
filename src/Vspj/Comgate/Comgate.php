@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate;
 
@@ -20,80 +22,123 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class Comgate extends ComgateBase
 {
+    /**
+     * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
+     *
+     * @param ComgatePlatba $comgatePlatba Objekt vytvořené šablony platby
+     * @param ComgateReturnRoute $returnRoute Objekt návratové Symfony routy (při návratu zpět z platební brány)
+     * @throws ComgateException
+     */
+    public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse
+    {
+        $returnUrl = $this->generateReturnUrl($returnRoute, $comgatePlatba->getSpecifickySymbol());
+        $payment = new Payment();
+        $payment
+            ->setPrice(Money::ofFloat($comgatePlatba->getCastkaCzk()))
+            ->setCurrency(CurrencyCode::CZK)
+            ->setLabel($comgatePlatba->getPopisPlatby())
+            ->setReferenceId($comgatePlatba->getSpecifickySymbol())
+            ->setFullName($comgatePlatba->getCeleJmenoPlatce())
+            ->setEmail($comgatePlatba->getEmailPlatce())
+            ->addMethod(self::COMGATE_METHODS)
+            ->setCategory(CategoryCode::OTHER)
+            ->setDelivery(DeliveryCode::ELECTRONIC_DELIVERY)
+            ->setInitRecurring(false)
+            ->setTest($this->testMode)
+            ->setUrlPaid($returnUrl)
+            ->setUrlPaidRedirect($returnUrl)
+            ->setUrlCancelled($returnUrl)
+            ->setUrlCancelledRedirect($returnUrl)
+            ->setUrlPending($returnUrl)
+            ->setUrlPendingRedirect($returnUrl);
 
-	/**
-	 * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
-	 *
-	 * @param ComgatePlatba $comgatePlatba Objekt vytvořené šablony platby
-	 * @param ComgateReturnRoute $returnRoute Objekt návratové Symfony routy (při návratu zpět z platební brány)
-	 */
-	public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse
-	{
-		$returnUrl = $this->generateReturnUrl($returnRoute);
-		$payment = new Payment();
-		$payment
-			->setPrice(Money::ofFloat($comgatePlatba->getCastkaCzk()))
-			->setCurrency(CurrencyCode::CZK)
-			->setLabel($comgatePlatba->getPopisPlatby())
-			->setReferenceId($comgatePlatba->getSpecifickySymbol())
-			->setFullName($comgatePlatba->getCeleJmenoPlatce())
-			->setEmail($comgatePlatba->getEmailPlatce())
-			->addMethod(self::COMGATE_METHODS)
-			->setCategory(CategoryCode::OTHER)
-			->setDelivery(DeliveryCode::ELECTRONIC_DELIVERY)
-			->setInitRecurring(false)
-			->setTest($this->testMode)
-			->setUrlPaid($returnUrl)
-			->setUrlPaidRedirect($returnUrl)
-			->setUrlCancelled($returnUrl)
-			->setUrlCancelledRedirect($returnUrl)
-			->setUrlPending($returnUrl)
-			->setUrlPendingRedirect($returnUrl);
+        $createPaymentResponse = $this->client->createPayment($payment);
+        if ($createPaymentResponse->getCode() !== RequestCode::OK) {
+            throw new ComgateException($createPaymentResponse->getMessage());
+        }
 
-		$createPaymentResponse = $this->client->createPayment($payment);
-		if ($createPaymentResponse->getCode() !== RequestCode::OK) {
-			throw new ComgateException($createPaymentResponse->getMessage());
-		}
+        return new RedirectResponse($createPaymentResponse->getRedirect());
+    }
 
-		return new RedirectResponse($createPaymentResponse->getRedirect());
-	}
+    /**
+     * Ověření stavu platby po návratu z platební brány
+     * VŽDY volat před voláním metody novaPlatba!
+     *
+     * @param Request $request Symfony HTTP pozadavek
+     * @return ComgatePlatbaStav|null
+     * @throws ComgateException
+     */
+    public function overitStavPlatby(Request $request): ?ComgatePlatbaStav
+    {
+        $transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
+        $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
+        $returningHash = $request->query->get(self::HASH_ATRIBUT);
 
-	/**
-	 * Ověření stavu platby po návratu z platební brány
-	 * VŽDY	volat před voláním metody novaPlatba!
-	 *
-	 * @param Request $request Symfony HTTP pozadavek
-	 * @return ComgatePlatbaStav|null
-	 */
-	public function overitStavPlatby(Request $request): ?ComgatePlatbaStav
-	{
-		$transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
-		$referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
+        if (!isset($transactionId) || !isset($referenceId)) {
+            return null;
+        }
 
-		if (!isset($transactionId) || !isset($referenceId)) {
-			return null;
-		}
+        if ($this->hashKontrola($referenceId, $returningHash) === null) {
+            throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+        }
 
-		$paymentStatusResponse = $this->client->getStatus($transactionId);
+        $paymentStatusResponse = $this->client->getStatus($transactionId);
 
-		switch ($paymentStatusResponse->getStatus()) {
-			case PaymentStatusCode::PAID:
-				return new ComgatePlatbaStav($transactionId, $referenceId, PaymentStatusCode::PAID, ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO);
-			case PaymentStatusCode::CANCELLED:
-				return new ComgatePlatbaStav($transactionId, $referenceId, PaymentStatusCode::CANCELLED, ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO);
-			case PaymentStatusCode::PENDING:
-				return new ComgatePlatbaStav($transactionId, $referenceId, PaymentStatusCode::PENDING, ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI);
-			case PaymentStatusCode::AUTHORIZED:
-				return new ComgatePlatbaStav($transactionId, $referenceId, PaymentStatusCode::AUTHORIZED, ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO);
-			default:
-				throw new ComgateException('Byl vrácen neznámý stav platby ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
-		}
-	}
+        switch ($paymentStatusResponse->getStatus()) {
+            case PaymentStatusCode::PAID:
+                return new ComgatePlatbaStav(
+                    $transactionId,
+                    $referenceId,
+                    PaymentStatusCode::PAID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case PaymentStatusCode::CANCELLED:
+                return new ComgatePlatbaStav(
+                    $transactionId,
+                    $referenceId,
+                    PaymentStatusCode::CANCELLED,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case PaymentStatusCode::PENDING:
+                return new ComgatePlatbaStav(
+                    $transactionId,
+                    $referenceId,
+                    PaymentStatusCode::PENDING,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case PaymentStatusCode::AUTHORIZED:
+                return new ComgatePlatbaStav(
+                    $transactionId,
+                    $referenceId,
+                    PaymentStatusCode::AUTHORIZED,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            default:
+                throw new ComgateException('Neznámý stav platby při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+        }
+    }
 
-	protected function generateReturnUrl(ComgateReturnRoute $returnRoute): string
-	{
-		return $this->urlGenerator->generate($returnRoute->getSymfonyRoute(), $returnRoute->getSymfonyRouteParameters(), UrlGeneratorInterface::ABSOLUTE_URL) .
-			'?' . self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
-	}
+    protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string
+    {
+        return $this->urlGenerator->generate($returnRoute->getSymfonyRoute(), $returnRoute->getSymfonyRouteParameters(), UrlGeneratorInterface::ABSOLUTE_URL) .
+            '?' . self::HASH_ATRIBUT . '=' . $this->hashKontrola($referenceId) . '&' . self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
+    }
 
+    public static function getReferenceIdAtribut(): string
+    {
+        return self::REFERENCE_ID_ATRIBUT;
+    }
+
+    public static function getTransactionIdAtribut(): string
+    {
+        return self::TRANSACTION_ID_ATRIBUT;
+    }
 }

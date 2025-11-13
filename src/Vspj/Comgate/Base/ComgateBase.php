@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
@@ -9,66 +11,86 @@ use Comgate\SDK\Entity\Codes\PaymentMethodCode;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 use function getenv;
 use function trim;
 
 abstract class ComgateBase
 {
+    protected const REFERENCE_ID_ATRIBUT = 'ref';
 
-	protected const REFERENCE_ID_ATRIBUT = 'vspjPaymentRefId';
+    protected const TRANSACTION_ID_ATRIBUT = 'pId';
 
-	protected const TRANSACTION_ID_ATRIBUT = 'paymentId';
+    protected const HASH_ATRIBUT = 'hash';
 
-	protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
-	PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
+    protected const HASH_SALT = '1vspjComgate*HashSalt_23';
 
-	protected UrlGeneratorInterface $urlGenerator;
+    protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
+    PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
 
-	protected ?Client $client = null;
+    protected UrlGeneratorInterface $urlGenerator;
 
-	//vala04 - Platebni brana v testovacim rezimu pro ucely vyvoje. Menit v .env
-	protected bool $testMode;
+    protected ?Client $client = null;
 
-	abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse;
+    //vala04 - Platebni brana v testovacim rezimu pro ucely vyvoje. Menit v .env
+    protected bool $testMode;
 
-	abstract public function overitStavPlatby(Request $request): ?ComgatePlatbaStav;
+    abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse;
 
-	abstract protected function generateReturnUrl(ComgateReturnRoute $returnRoute): string;
+    abstract public function overitStavPlatby(Request $request): ?ComgatePlatbaStav;
 
-	public function __construct(UrlGeneratorInterface $urlGenerator)
-	{
-		$this->client = $this->getClientComgate();
-		$this->urlGenerator = $urlGenerator;
+    abstract protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string;
 
-		$testModeRaw = getenv('COMGATE_TEST_MODE');
-		if ($testModeRaw === false) {
-			throw new ComgateException('COMGATE_TEST_MODE není nastaveno v .env!');
-		}
+    /**
+     * @throws ComgateException
+     */
+    public function __construct(UrlGeneratorInterface $urlGenerator)
+    {
+        $this->client = $this->getClientComgate();
+        $this->urlGenerator = $urlGenerator;
 
-		$testModeRaw = trim($testModeRaw);
-		if ($testModeRaw !== 'true' && $testModeRaw !== 'false') {
-			throw new ComgateException('COMGATE_TEST_MODE musí mít hodnotu true nebo false!');
-		}
+        $testModeRaw = getenv('COMGATE_TEST_MODE');
+        if ($testModeRaw === false) {
+            throw new ComgateException('COMGATE_TEST_MODE není nastaveno v .env!');
+        }
 
-		$this->testMode = $testModeRaw === 'true';
-	}
+        $testModeRaw = trim($testModeRaw);
+        if ($testModeRaw !== 'true' && $testModeRaw !== 'false') {
+            throw new ComgateException('COMGATE_TEST_MODE musí mít hodnotu true nebo false!');
+        }
 
-	private function getClientComgate(): Client
-	{
-		$merchant = getenv('COMGATE_MERCHANT');
-		if ($merchant === false) {
-			throw new ComgateException('COMGATE_MERCHANT není nastaveno v .env!');
-		}
+        $this->testMode = $testModeRaw === 'true';
+    }
 
-		$secret = getenv('COMGATE_SECRET');
-		if ($secret === false) {
-			throw new ComgateException('COMGATE_SECRET není nastaveno v .env!');
-		}
+    /**
+     * @throws ComgateException
+     */
+    private function getClientComgate(): Client
+    {
+        $merchant = getenv('COMGATE_MERCHANT');
+        if ($merchant === false) {
+            throw new ComgateException('COMGATE_MERCHANT není nastaveno v .env!');
+        }
 
-		return Comgate::defaults()
-			->setMerchant(trim($merchant))
-			->setSecret(trim($secret))
-			->createClient();
-	}
+        $secret = getenv('COMGATE_SECRET');
+        if ($secret === false) {
+            throw new ComgateException('COMGATE_SECRET není nastaveno v .env!');
+        }
 
+        return Comgate::defaults()
+            ->setMerchant(trim($merchant))
+            ->setSecret(trim($secret))
+            ->createClient();
+    }
+
+    protected function hashKontrola(string $referenceId, ?string $hash = null): ?string
+    {
+        $saltedHash = sha1($referenceId . self::HASH_SALT);
+
+        if ($hash === null) {
+            return $saltedHash;
+        }
+
+        return ($hash === $saltedHash) ? $saltedHash : null;
+    }
 }
