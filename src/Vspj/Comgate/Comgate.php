@@ -65,21 +65,21 @@ final class Comgate extends ComgateBase
      * VŽDY volat před voláním metody novaPlatba!
      *
      * @param Request $request Symfony HTTP pozadavek
-     * @return ComgatePlatbaStav|null
+     * @return ComgatePlatbaStav
      * @throws ComgateException
      */
-    public function overitStavPlatby(Request $request): ?ComgatePlatbaStav
+    public function overitStavPlatby(Request $request): ComgatePlatbaStav
     {
         $transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
         $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
         $returningHash = $request->query->get(self::HASH_ATRIBUT);
 
-        if (!isset($transactionId) || !isset($referenceId)) {
-            return null;
+        if (!isset($transactionId) || !isset($referenceId) || !isset($returningHash)) {
+            throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
         if ($this->hashKontrola($referenceId, $returningHash) === null) {
-            throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+            throw new ComgateException('Neplatný hash požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
         $paymentStatusResponse = $this->client->getStatus($transactionId);
