@@ -12,7 +12,6 @@ use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Comgate\SDK\Entity\Codes\CategoryCode;
 use Comgate\SDK\Entity\Codes\CurrencyCode;
 use Comgate\SDK\Entity\Codes\DeliveryCode;
-use Comgate\SDK\Entity\Codes\PaymentStatusCode;
 use Comgate\SDK\Entity\Codes\RequestCode;
 use Comgate\SDK\Entity\Money;
 use Comgate\SDK\Entity\Payment;
@@ -95,39 +94,39 @@ final class Comgate extends ComgateBase
         $paymentStatusResponse = $this->client->getStatus($transactionId);
 
         switch ($paymentStatusResponse->getStatus()) {
-            case PaymentStatusCode::PAID:
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID:
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
-                    PaymentStatusCode::PAID,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
-            case PaymentStatusCode::CANCELLED:
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID:
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
-                    PaymentStatusCode::CANCELLED,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
-            case PaymentStatusCode::PENDING:
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID:
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
-                    PaymentStatusCode::PENDING,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
-            case PaymentStatusCode::AUTHORIZED:
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID:
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
-                    PaymentStatusCode::AUTHORIZED,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );

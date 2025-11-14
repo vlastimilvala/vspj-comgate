@@ -9,20 +9,24 @@ use DateTime;
 
 class ComgatePlatbaStav
 {
-    public const COMGATE_PLATBA_STAV_ZAPLACENO = 'Platba proběhla úspěšně';
+    public const COMGATE_PLATBA_STAV_ZAPLACENO_ID = PaymentStatusCode::PAID;
+    public const COMGATE_PLATBA_STAV_ZAPLACENO_POPIS = 'Platba proběhla úspěšně';
 
-    public const COMGATE_PLATBA_STAV_ZRUSENO = 'Požadavek byl zrušen';
+    public const COMGATE_PLATBA_STAV_ZRUSENO_ID = PaymentStatusCode::CANCELLED;
+    public const COMGATE_PLATBA_STAV_ZRUSENO_POPIS = 'Požadavek byl zrušen';
 
-    public const COMGATE_PLATBA_STAV_CEKAJICI = 'Čekáme na dokončení platby';
+    public const COMGATE_PLATBA_STAV_CEKAJICI_ID = PaymentStatusCode::PENDING;
+    public const COMGATE_PLATBA_STAV_CEKAJICI_POPIS = 'Čekáme na dokončení platby';
 
-    public const COMGATE_PLATBA_STAV_AUTORIZOVANO = 'Platba byla úspěšně autorizována';
+    public const COMGATE_PLATBA_STAV_AUTORIZOVANO_ID = PaymentStatusCode::AUTHORIZED;
+    public const COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS = 'Platba byla úspěšně autorizována';
 
     private string $transakceId;
 
     //vala04 - Většinou to bude specifický symbol
     private string $referenceId;
 
-	//vala04 - Jedná se o variabilní symbol, který generuje platební brána. Nejedná se tedy o VS ze strany klienta
+    //vala04 - Jedná se o variabilní symbol, který generuje platební brána. Nejedná se tedy o VS ze strany klienta
     private ?string $vs;
 
     private string $metodaPlatby;
