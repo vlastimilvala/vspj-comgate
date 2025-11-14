@@ -19,9 +19,10 @@ class ComgatePlatbaStav
 
     private string $platbaId;
 
-    //vala04 - většinou to bude specifický symbol
+    //vala04 - Většinou to bude specifický symbol
     private string $referenceId;
 
+	//vala04 - Jedná se o variabilní symbol, který generuje platební brána. Nejedná se tedy o VS ze strany klienta
     private ?string $vs;
 
     private string $metodaPlatby;

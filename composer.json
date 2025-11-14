@@ -10,7 +10,7 @@
   ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "comgate/sdk": "^1.6",
+    "comgate/sdk": "^1.7",
     "symfony/http-foundation": "^4.4 || ^5.4",
     "symfony/routing": "^4.4 || ^5.4"
   },

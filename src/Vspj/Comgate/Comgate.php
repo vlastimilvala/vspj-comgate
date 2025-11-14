@@ -132,12 +132,12 @@ final class Comgate extends ComgateBase
             '?' . self::HASH_ATRIBUT . '=' . $this->hashKontrola($referenceId) . '&' . self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
     }
 
-    public static function getReferenceIdAtribut(): string
+    public function getReferenceIdAtribut(): string
     {
         return self::REFERENCE_ID_ATRIBUT;
     }
 
-    public static function getTransactionIdAtribut(): string
+    public function getTransactionIdAtribut(): string
     {
         return self::TRANSACTION_ID_ATRIBUT;
     }

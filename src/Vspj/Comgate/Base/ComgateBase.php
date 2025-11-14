@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function getenv;
 use function trim;
+use function sha1;
 
 abstract class ComgateBase
 {
