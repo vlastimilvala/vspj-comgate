@@ -22,6 +22,16 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class Comgate extends ComgateBase
 {
+    public function getReferenceIdAtribut(): string
+    {
+        return self::REFERENCE_ID_ATRIBUT;
+    }
+
+    public function getTransactionIdAtribut(): string
+    {
+        return self::TRANSACTION_ID_ATRIBUT;
+    }
+
     /**
      * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
      *
@@ -130,15 +140,5 @@ final class Comgate extends ComgateBase
     {
         return $this->urlGenerator->generate($returnRoute->getSymfonyRoute(), $returnRoute->getSymfonyRouteParameters(), UrlGeneratorInterface::ABSOLUTE_URL) .
             '?' . self::HASH_ATRIBUT . '=' . $this->hashKontrola($referenceId) . '&' . self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
-    }
-
-    public function getReferenceIdAtribut(): string
-    {
-        return self::REFERENCE_ID_ATRIBUT;
-    }
-
-    public function getTransactionIdAtribut(): string
-    {
-        return self::TRANSACTION_ID_ATRIBUT;
     }
 }
