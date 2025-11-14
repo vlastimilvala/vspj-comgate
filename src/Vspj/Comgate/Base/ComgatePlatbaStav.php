@@ -17,7 +17,7 @@ class ComgatePlatbaStav
 
     public const COMGATE_PLATBA_STAV_AUTORIZOVANO = 'Platba byla úspěšně autorizována';
 
-    private string $platbaId;
+    private string $transakceId;
 
     //vala04 - Většinou to bude specifický symbol
     private string $referenceId;
@@ -36,14 +36,14 @@ class ComgatePlatbaStav
     private ?DateTime $datumDokonceniPlatby;
 
     public function __construct(
-        string $platbaId,
+        string $transakceId,
         string $referenceId,
         string $stav,
         string $popisStavu,
         string $metodaPlatby,
         ?string $vs = null
     ) {
-        $this->platbaId = $platbaId;
+        $this->transakceId = $transakceId;
         $this->referenceId = $referenceId;
         $this->stav = $stav;
         $this->popisStavu = $popisStavu;
@@ -53,9 +53,9 @@ class ComgatePlatbaStav
         $this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
     }
 
-    public function getPlatbaId(): string
+    public function getTransakceId(): string
     {
-        return $this->platbaId;
+        return $this->transakceId;
     }
 
     public function getReferenceId(): string
