@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate;
 
+use Comgate\SDK\Exception\Api\PaymentNotFoundException;
 use Vspj\PlatebniBrana\Comgate\Base\ComgateBase;
 use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatba;
 use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatbaStav;
@@ -110,7 +111,11 @@ final class Comgate extends ComgateBase
             throw new ComgateException('Neplatný hash požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
-        $paymentStatusResponse = $this->client->getStatus($transactionId);
+        try {
+            $paymentStatusResponse = $this->client->getStatus($transactionId);
+        } catch (PaymentNotFoundException $e) {
+            throw new ComgateException('Neexistující ID platby. ID platby: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+        }
 
         switch ($paymentStatusResponse->getStatus()) {
             case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID:
