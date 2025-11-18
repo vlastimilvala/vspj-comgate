@@ -8,6 +8,8 @@ class ComgatePlatba
 {
     private string $specifickySymbol;
 
+    private string $variabilniSymbol;
+
     private string $celeJmenoPlatce;
 
     private string $emailPlatce;
@@ -18,6 +20,7 @@ class ComgatePlatba
 
     /**
      * @param string $specifickySymbol SS platby
+     * @param string $variabilniSymbol VS platby
      * @param string $celeJmenoPlatce Celé jméno plátce
      * @param string $emailPlatce E-mail plátce
      * @param string $popisPlatby Popis určení platby
@@ -25,12 +28,14 @@ class ComgatePlatba
      */
     public function __construct(
         string $specifickySymbol,
+        string $variabilniSymbol,
         string $celeJmenoPlatce,
         string $emailPlatce,
         string $popisPlatby,
         float $castkaCzk
     ) {
         $this->specifickySymbol = $specifickySymbol;
+        $this->variabilniSymbol = $variabilniSymbol;
         $this->celeJmenoPlatce = $celeJmenoPlatce;
         $this->emailPlatce = $emailPlatce;
         $this->popisPlatby = $popisPlatby;
@@ -40,6 +45,11 @@ class ComgatePlatba
     public function getSpecifickySymbol(): string
     {
         return $this->specifickySymbol;
+    }
+
+    public function getVariabilniSymbol(): string
+    {
+        return $this->variabilniSymbol;
     }
 
     public function getCeleJmenoPlatce(): string

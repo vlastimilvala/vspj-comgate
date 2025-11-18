@@ -31,6 +31,11 @@ final class Comgate extends ComgateBase
         return self::TRANSACTION_ID_ATRIBUT;
     }
 
+    public function getHashAtribut(): string
+    {
+        return self::HASH_ATRIBUT;
+    }
+
     /**
      * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
      *
@@ -40,13 +45,14 @@ final class Comgate extends ComgateBase
      */
     public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse
     {
-        $returnUrl = $this->generateReturnUrl($returnRoute, $comgatePlatba->getSpecifickySymbol());
+        $symboly = $comgatePlatba->getSpecifickySymbol() . self::SYMBOL_DELIMITER . $comgatePlatba->getVariabilniSymbol();
+        $returnUrl = $this->generateReturnUrl($returnRoute, $symboly);
         $payment = new Payment();
         $payment
             ->setPrice(Money::ofFloat($comgatePlatba->getCastkaCzk()))
             ->setCurrency(CurrencyCode::CZK)
             ->setLabel($comgatePlatba->getPopisPlatby())
-            ->setReferenceId($comgatePlatba->getSpecifickySymbol())
+            ->setReferenceId($symboly)
             ->setFullName($comgatePlatba->getCeleJmenoPlatce())
             ->setEmail($comgatePlatba->getEmailPlatce())
             ->addMethod(self::COMGATE_METHODS)
@@ -69,6 +75,19 @@ final class Comgate extends ComgateBase
         return new RedirectResponse($createPaymentResponse->getRedirect());
     }
 
+    public function jeNavratovyPozadavek(Request $request): bool
+    {
+        $transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
+        $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
+        $returningHash = $request->query->get(self::HASH_ATRIBUT);
+
+        if (!isset($transactionId) || !isset($referenceId) || !isset($returningHash)) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Ověření stavu platby po návratu z platební brány
      * VŽDY volat před voláním metody novaPlatba!
@@ -83,7 +102,7 @@ final class Comgate extends ComgateBase
         $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
         $returningHash = $request->query->get(self::HASH_ATRIBUT);
 
-        if (!isset($transactionId) || !isset($referenceId) || !isset($returningHash)) {
+        if (!$this->jeNavratovyPozadavek($request)) {
             throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
@@ -98,6 +117,7 @@ final class Comgate extends ComgateBase
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
+                    self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
                     $paymentStatusResponse->getMethod(),
@@ -107,6 +127,7 @@ final class Comgate extends ComgateBase
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
+                    self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
                     $paymentStatusResponse->getMethod(),
@@ -116,6 +137,7 @@ final class Comgate extends ComgateBase
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
+                    self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
                     $paymentStatusResponse->getMethod(),
@@ -125,6 +147,7 @@ final class Comgate extends ComgateBase
                 return new ComgatePlatbaStav(
                     $transactionId,
                     $referenceId,
+                    self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
                     $paymentStatusResponse->getMethod(),
@@ -135,6 +158,9 @@ final class Comgate extends ComgateBase
         }
     }
 
+    /**
+     * @throws ComgateException
+     */
     protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string
     {
         return $this->urlGenerator->generate($returnRoute->getSymfonyRoute(), $returnRoute->getSymfonyRouteParameters(), UrlGeneratorInterface::ABSOLUTE_URL) .

@@ -23,11 +23,17 @@ class ComgatePlatbaStav
 
     private string $transakceId;
 
-    //vala04 - Většinou to bude specifický symbol
+    //vala04 - SS+VS ve string formátu "specifický symbol/variabilní symbol" např. 123456789/32165412
     private string $referenceId;
 
-    //vala04 - Jedná se o variabilní symbol, který generuje platební brána. Nejedná se tedy o VS ze strany klienta
-    private ?string $vs;
+    //vala04 - Jedná se o variabilní symbol, který generuje platební brána
+    private ?string $vsBrana;
+
+    //vala04 - Jedná se o variabilní symbol ze strany klienta
+    private string $vsKlient;
+
+    //vala04 - Jedná se o specifický symbol ze strany klienta
+    private string $ssKlient;
 
     private string $metodaPlatby;
 
@@ -42,19 +48,21 @@ class ComgatePlatbaStav
     public function __construct(
         string $transakceId,
         string $referenceId,
+        string $delimiter,
         string $stav,
         string $popisStavu,
         string $metodaPlatby,
-        ?string $vs = null
+        ?string $vsBrana = null
     ) {
         $this->transakceId = $transakceId;
         $this->referenceId = $referenceId;
         $this->stav = $stav;
         $this->popisStavu = $popisStavu;
         $this->metodaPlatby = $metodaPlatby;
-        $this->vs = $vs;
+        $this->vsBrana = $vsBrana;
         $this->zaplaceno = $stav === PaymentStatusCode::PAID;
         $this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
+        list($this->ssKlient, $this->vsKlient) = explode($delimiter, $referenceId);
     }
 
     public function getTransakceId(): string
@@ -67,9 +75,19 @@ class ComgatePlatbaStav
         return $this->referenceId;
     }
 
-    public function getVs(): ?string
+    public function getVsBrana(): ?string
     {
-        return $this->vs;
+        return $this->vsBrana;
+    }
+
+    public function getVsKlient(): ?string
+    {
+        return $this->vsKlient;
+    }
+
+    public function getSsKlient(): ?string
+    {
+        return $this->ssKlient;
     }
 
     public function getMetodaPlatby(): string

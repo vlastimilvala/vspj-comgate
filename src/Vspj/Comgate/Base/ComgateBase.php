@@ -24,7 +24,7 @@ abstract class ComgateBase
 
     protected const HASH_ATRIBUT = 'hash';
 
-    protected const HASH_SALT = '1vspjComgate*HashSalt_23';
+    protected const SYMBOL_DELIMITER = '/';
 
     protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
     PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
@@ -37,6 +37,8 @@ abstract class ComgateBase
     protected bool $testMode;
 
     abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse;
+
+    abstract public function jeNavratovyPozadavek(Request $request): bool;
 
     abstract public function overitStavPlatby(Request $request): ?ComgatePlatbaStav;
 
@@ -84,9 +86,17 @@ abstract class ComgateBase
             ->createClient();
     }
 
+    /**
+     * @throws ComgateException
+     */
     protected function hashKontrola(string $referenceId, ?string $hash = null): ?string
     {
-        $saltedHash = sha1($referenceId . self::HASH_SALT);
+        $hashSalt = getenv('COMGATE_HASH_SALT');
+        if ($hashSalt === false) {
+            throw new ComgateException('COMGATE_HASH_SALT není nastaveno v .env!');
+        }
+
+        $saltedHash = sha1($referenceId . $hashSalt);
 
         if ($hash === null) {
             return $saltedHash;
