@@ -11,15 +11,19 @@ class ComgatePlatbaStav
 {
     public const COMGATE_PLATBA_STAV_ZAPLACENO_ID = PaymentStatusCode::PAID;
     public const COMGATE_PLATBA_STAV_ZAPLACENO_POPIS = 'Platba proběhla úspěšně';
+    public const COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI = 'success';
 
     public const COMGATE_PLATBA_STAV_ZRUSENO_ID = PaymentStatusCode::CANCELLED;
     public const COMGATE_PLATBA_STAV_ZRUSENO_POPIS = 'Požadavek byl zrušen';
+    public const COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI = 'danger';
 
     public const COMGATE_PLATBA_STAV_CEKAJICI_ID = PaymentStatusCode::PENDING;
     public const COMGATE_PLATBA_STAV_CEKAJICI_POPIS = 'Čekáme na dokončení platby';
+    public const COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI = 'info';
 
     public const COMGATE_PLATBA_STAV_AUTORIZOVANO_ID = PaymentStatusCode::AUTHORIZED;
     public const COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS = 'Platba byla úspěšně autorizována';
+    public const COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI = 'info';
 
     private string $transakceId;
 
@@ -41,6 +45,8 @@ class ComgatePlatbaStav
 
     private string $popisStavu;
 
+    private string $zvyrazneniStavu;
+
     private bool $zaplaceno;
 
     private ?DateTime $datumDokonceniPlatby;
@@ -51,6 +57,7 @@ class ComgatePlatbaStav
         string $delimiter,
         string $stav,
         string $popisStavu,
+        string $zvyrazneniStavu,
         string $metodaPlatby,
         ?string $vsBrana = null
     ) {
@@ -58,6 +65,7 @@ class ComgatePlatbaStav
         $this->referenceId = $referenceId;
         $this->stav = $stav;
         $this->popisStavu = $popisStavu;
+        $this->zvyrazneniStavu = $zvyrazneniStavu;
         $this->metodaPlatby = $metodaPlatby;
         $this->vsBrana = $vsBrana;
         $this->zaplaceno = $stav === PaymentStatusCode::PAID;
@@ -103,6 +111,11 @@ class ComgatePlatbaStav
     public function getPopisStavu(): string
     {
         return $this->popisStavu;
+    }
+
+    public function getZvyrazneniStavu()
+    {
+        return $this->zvyrazneniStavu;
     }
 
     public function jeZaplaceno(): bool

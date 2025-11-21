@@ -46,7 +46,8 @@ final class Comgate extends ComgateBase
      */
     public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse
     {
-        $symboly = $comgatePlatba->getSpecifickySymbol() . self::SYMBOL_DELIMITER . $comgatePlatba->getVariabilniSymbol();
+        $symboly = $comgatePlatba->getSpecifickySymbol() .
+            self::SYMBOL_DELIMITER . $comgatePlatba->getVariabilniSymbol();
         $returnUrl = $this->generateReturnUrl($returnRoute, $symboly);
         $payment = new Payment();
         $payment
@@ -104,17 +105,20 @@ final class Comgate extends ComgateBase
         $returningHash = $request->query->get(self::HASH_ATRIBUT);
 
         if (!$this->jeNavratovyPozadavek($request)) {
-            throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+            throw new ComgateException('Neplatný požadavek při návratu z brány. ID: ' .
+                $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
         if ($this->hashKontrola($referenceId, $returningHash) === null) {
-            throw new ComgateException('Neplatný hash požadavek při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+            throw new ComgateException('Neplatný hash požadavek při návratu z brány. ID: ' .
+                $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
         try {
             $paymentStatusResponse = $this->client->getStatus($transactionId);
         } catch (PaymentNotFoundException $e) {
-            throw new ComgateException('Neexistující ID platby. ID platby: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+            throw new ComgateException('Neexistující ID platby. ID platby: ' .
+                $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
         switch ($paymentStatusResponse->getStatus()) {
@@ -125,6 +129,7 @@ final class Comgate extends ComgateBase
                     self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -135,6 +140,7 @@ final class Comgate extends ComgateBase
                     self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -145,6 +151,7 @@ final class Comgate extends ComgateBase
                     self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -155,11 +162,13 @@ final class Comgate extends ComgateBase
                     self::SYMBOL_DELIMITER,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
             default:
-                throw new ComgateException('Neznámý stav platby při návratu z brány. ID: ' . $transactionId . ', Ref. ID: ' . $referenceId);
+                throw new ComgateException('Neznámý stav platby při návratu z brány. ID: ' .
+                    $transactionId . ', Ref. ID: ' . $referenceId);
         }
     }
 
