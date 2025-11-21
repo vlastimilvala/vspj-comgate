@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate;
 
-use Comgate\SDK\Exception\Api\PaymentNotFoundException;
 use Vspj\PlatebniBrana\Comgate\Base\ComgateBase;
 use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatba;
 use Vspj\PlatebniBrana\Comgate\Base\ComgatePlatbaStav;
@@ -16,27 +15,13 @@ use Comgate\SDK\Entity\Codes\DeliveryCode;
 use Comgate\SDK\Entity\Codes\RequestCode;
 use Comgate\SDK\Entity\Money;
 use Comgate\SDK\Entity\Payment;
+use Comgate\SDK\Exception\Api\PaymentNotFoundException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class Comgate extends ComgateBase
 {
-    public function getReferenceIdAtribut(): string
-    {
-        return self::REFERENCE_ID_ATRIBUT;
-    }
-
-    public function getTransactionIdAtribut(): string
-    {
-        return self::TRANSACTION_ID_ATRIBUT;
-    }
-
-    public function getHashAtribut(): string
-    {
-        return self::HASH_ATRIBUT;
-    }
-
     /**
      * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
      *
@@ -98,7 +83,7 @@ final class Comgate extends ComgateBase
      * @return ComgatePlatbaStav
      * @throws ComgateException
      */
-    public function overitStavPlatby(Request $request): ComgatePlatbaStav
+    public function overitStavPlatbyPodleRequestu(Request $request): ComgatePlatbaStav
     {
         $transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
         $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
@@ -121,55 +106,21 @@ final class Comgate extends ComgateBase
                 $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
-        switch ($paymentStatusResponse->getStatus()) {
-            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID:
-                return new ComgatePlatbaStav(
-                    $transactionId,
-                    $referenceId,
-                    self::SYMBOL_DELIMITER,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI,
-                    $paymentStatusResponse->getMethod(),
-                    $paymentStatusResponse->getVs()
-                );
-            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID:
-                return new ComgatePlatbaStav(
-                    $transactionId,
-                    $referenceId,
-                    self::SYMBOL_DELIMITER,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI,
-                    $paymentStatusResponse->getMethod(),
-                    $paymentStatusResponse->getVs()
-                );
-            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID:
-                return new ComgatePlatbaStav(
-                    $transactionId,
-                    $referenceId,
-                    self::SYMBOL_DELIMITER,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
-                    $paymentStatusResponse->getMethod(),
-                    $paymentStatusResponse->getVs()
-                );
-            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID:
-                return new ComgatePlatbaStav(
-                    $transactionId,
-                    $referenceId,
-                    self::SYMBOL_DELIMITER,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
-                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI,
-                    $paymentStatusResponse->getMethod(),
-                    $paymentStatusResponse->getVs()
-                );
-            default:
-                throw new ComgateException('Neznámý stav platby při návratu z brány. ID: ' .
-                    $transactionId . ', Ref. ID: ' . $referenceId);
-        }
+        return $this->overitStavPlatby($paymentStatusResponse);
+    }
+
+    /**
+     * Ověření stavu již existující (na bráně založené) platby
+     *
+     * @param string $transactionId #ID transakce na straně platební brány
+     * @return ComgatePlatbaStav
+     * @throws ComgateException
+     */
+    public function overitStavPlatbyPodleTransakce(string $transactionId): ComgatePlatbaStav
+    {
+        $paymentStatusResponse = $this->client->getStatus($transactionId);
+
+        return $this->overitStavPlatby($paymentStatusResponse);
     }
 
     /**

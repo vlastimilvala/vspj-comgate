@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
+use Comgate\SDK\Entity\Response\PaymentStatusResponse;
 use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Comgate\SDK\Client;
 use Comgate\SDK\Comgate;
@@ -40,7 +41,9 @@ abstract class ComgateBase
 
     abstract public function jeNavratovyPozadavek(Request $request): bool;
 
-    abstract public function overitStavPlatby(Request $request): ?ComgatePlatbaStav;
+    abstract public function overitStavPlatbyPodleRequestu(Request $request): ?ComgatePlatbaStav;
+
+    abstract public function overitStavPlatbyPodleTransakce(string $transactionId): ?ComgatePlatbaStav;
 
     abstract protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string;
 
@@ -103,5 +106,63 @@ abstract class ComgateBase
         }
 
         return ($hash === $saltedHash) ? $saltedHash : null;
+    }
+
+    /**
+     * @param PaymentStatusResponse $paymentStatusResponse
+     * @return ComgatePlatbaStav
+     * @throws ComgateException
+     */
+    protected function overitStavPlatby(PaymentStatusResponse $paymentStatusResponse): ComgatePlatbaStav
+    {
+        switch ($paymentStatusResponse->getStatus()) {
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID:
+                return new ComgatePlatbaStav(
+                    $paymentStatusResponse->getTransId(),
+                    $paymentStatusResponse->getRefId(),
+                    self::SYMBOL_DELIMITER,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID:
+                return new ComgatePlatbaStav(
+                    $paymentStatusResponse->getTransId(),
+                    $paymentStatusResponse->getRefId(),
+                    self::SYMBOL_DELIMITER,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID:
+                return new ComgatePlatbaStav(
+                    $paymentStatusResponse->getTransId(),
+                    $paymentStatusResponse->getRefId(),
+                    self::SYMBOL_DELIMITER,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            case ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID:
+                return new ComgatePlatbaStav(
+                    $paymentStatusResponse->getTransId(),
+                    $paymentStatusResponse->getRefId(),
+                    self::SYMBOL_DELIMITER,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
+                    ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI,
+                    $paymentStatusResponse->getMethod(),
+                    $paymentStatusResponse->getVs()
+                );
+            default:
+                throw new ComgateException('Neznámý stav platby při návratu z brány. ID: ' .
+                    $paymentStatusResponse->getTransId() . ', Ref. ID: ' . $paymentStatusResponse->getRefId());
+        }
     }
 }
