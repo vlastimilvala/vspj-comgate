@@ -28,7 +28,7 @@ abstract class ComgateBase
 
     protected const HASH_ATRIBUT = 'hash';
 
-    protected const SYMBOL_DELIMITER = '//';
+    protected const SYMBOL_DELIMITER = '/';
 
     protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
     PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
