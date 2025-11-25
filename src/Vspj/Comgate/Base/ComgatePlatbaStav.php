@@ -27,17 +27,14 @@ class ComgatePlatbaStav
 
     private string $transakceId;
 
-    //vala04 - SS+VS ve string formátu "specifický symbol/variabilní symbol" např. 123456789/32165412
-    private string $referenceId;
-
-    //vala04 - Jedná se o variabilní symbol, který generuje platební brána
-    private ?string $vsBrana;
+    //vala04 - Jedná se o specifický symbol ze strany klienta
+    private string $ssKlient;
 
     //vala04 - Jedná se o variabilní symbol ze strany klienta
     private string $vsKlient;
 
-    //vala04 - Jedná se o specifický symbol ze strany klienta
-    private string $ssKlient;
+    //vala04 - Jedná se o variabilní symbol, který generuje platební brána
+    private ?string $vsBrana;
 
     private string $metodaPlatby;
 
@@ -54,7 +51,7 @@ class ComgatePlatbaStav
     public function __construct(
         string $transakceId,
         string $referenceId,
-        string $delimiter,
+        string $name,
         string $stav,
         string $popisStavu,
         string $zvyrazneniStavu,
@@ -62,15 +59,15 @@ class ComgatePlatbaStav
         ?string $vsBrana = null
     ) {
         $this->transakceId = $transakceId;
-        $this->referenceId = $referenceId;
+        $this->ssKlient = $referenceId;
+        $this->vsKlient = $name;
+        $this->vsBrana = $vsBrana;
         $this->stav = $stav;
         $this->popisStavu = $popisStavu;
         $this->zvyrazneniStavu = $zvyrazneniStavu;
         $this->metodaPlatby = $metodaPlatby;
-        $this->vsBrana = $vsBrana;
         $this->zaplaceno = $stav === PaymentStatusCode::PAID;
         $this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
-        list($this->ssKlient, $this->vsKlient) = explode($delimiter, $referenceId);
     }
 
     public function getTransakceId(): string
@@ -78,14 +75,9 @@ class ComgatePlatbaStav
         return $this->transakceId;
     }
 
-    public function getReferenceId(): string
+    public function getSsKlient(): ?string
     {
-        return $this->referenceId;
-    }
-
-    public function getVsBrana(): ?string
-    {
-        return $this->vsBrana;
+        return $this->ssKlient;
     }
 
     public function getVsKlient(): ?string
@@ -93,9 +85,9 @@ class ComgatePlatbaStav
         return $this->vsKlient;
     }
 
-    public function getSsKlient(): ?string
+    public function getVsBrana(): ?string
     {
-        return $this->ssKlient;
+        return $this->vsBrana;
     }
 
     public function getMetodaPlatby(): string

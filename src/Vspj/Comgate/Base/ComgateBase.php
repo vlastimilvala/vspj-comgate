@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
-use Comgate\SDK\Entity\Response\PaymentStatusResponse;
 use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Comgate\SDK\Client;
 use Comgate\SDK\Comgate;
 use Comgate\SDK\Entity\Codes\PaymentMethodCode;
+use Comgate\SDK\Entity\Response\PaymentStatusResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -21,11 +21,14 @@ abstract class ComgateBase
 {
     protected const REFERENCE_ID_ATRIBUT = 'ref';
 
-    protected const TRANSACTION_ID_ATRIBUT = 'pId';
+    protected const TRANSACTION_ID_ATRIBUT = 'tId';
+
+    //vala04 - atribut pro provedení kontrol hashů
+    protected const TRANSACTION_CODE_ATRIBUT = 'tC';
 
     protected const HASH_ATRIBUT = 'hash';
 
-    protected const SYMBOL_DELIMITER = '/';
+    protected const SYMBOL_DELIMITER = '//';
 
     protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
     PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
@@ -44,8 +47,6 @@ abstract class ComgateBase
     abstract public function overitStavPlatbyPodleRequestu(Request $request): ?ComgatePlatbaStav;
 
     abstract public function overitStavPlatbyPodleTransakce(string $transactionId): ?ComgatePlatbaStav;
-
-    abstract protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string;
 
     /**
      * @throws ComgateException
@@ -90,22 +91,44 @@ abstract class ComgateBase
     }
 
     /**
+     * @param string $refId
+     * @param string $tCode
+     * @param string|null $hash
+     * @return string|null
      * @throws ComgateException
      */
-    protected function hashKontrola(string $referenceId, ?string $hash = null): ?string
+    protected function hashKontrola(string $refId, string $tCode, ?string $hash = null): ?string
     {
         $hashSalt = getenv('COMGATE_HASH_SALT');
         if ($hashSalt === false) {
             throw new ComgateException('COMGATE_HASH_SALT není nastaveno v .env!');
         }
 
-        $saltedHash = sha1($referenceId . $hashSalt);
+        $saltedHash = sha1($tCode . $refId . $hashSalt);
 
         if ($hash === null) {
             return $saltedHash;
         }
 
         return ($hash === $saltedHash) ? $saltedHash : null;
+    }
+
+    /**
+     * @param ComgateReturnRoute $returnRoute
+     * @param string $refId
+     * @param string $tCode
+     * @return string
+     * @throws ComgateException
+     */
+    protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $refId, string $tCode): string
+    {
+        return $this->urlGenerator->generate(
+            $returnRoute->getSymfonyRoute(),
+            $returnRoute->getSymfonyRouteParameters(),
+            UrlGeneratorInterface::ABSOLUTE_URL
+        ) . '?' . self::HASH_ATRIBUT . '=' .
+            $this->hashKontrola($refId, $tCode) . '&' . self::TRANSACTION_CODE_ATRIBUT . '=' . $tCode . '&' .
+            self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
     }
 
     /**
@@ -120,7 +143,7 @@ abstract class ComgateBase
                 return new ComgatePlatbaStav(
                     $paymentStatusResponse->getTransId(),
                     $paymentStatusResponse->getRefId(),
-                    self::SYMBOL_DELIMITER,
+                    $paymentStatusResponse->getName(),
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI,
@@ -131,7 +154,7 @@ abstract class ComgateBase
                 return new ComgatePlatbaStav(
                     $paymentStatusResponse->getTransId(),
                     $paymentStatusResponse->getRefId(),
-                    self::SYMBOL_DELIMITER,
+                    $paymentStatusResponse->getName(),
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI,
@@ -142,7 +165,7 @@ abstract class ComgateBase
                 return new ComgatePlatbaStav(
                     $paymentStatusResponse->getTransId(),
                     $paymentStatusResponse->getRefId(),
-                    self::SYMBOL_DELIMITER,
+                    $paymentStatusResponse->getName(),
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
@@ -153,7 +176,7 @@ abstract class ComgateBase
                 return new ComgatePlatbaStav(
                     $paymentStatusResponse->getTransId(),
                     $paymentStatusResponse->getRefId(),
-                    self::SYMBOL_DELIMITER,
+                    $paymentStatusResponse->getName(),
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI,

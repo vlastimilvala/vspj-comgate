@@ -18,7 +18,6 @@ use Comgate\SDK\Entity\Payment;
 use Comgate\SDK\Exception\Api\PaymentNotFoundException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class Comgate extends ComgateBase
 {
@@ -33,13 +32,14 @@ final class Comgate extends ComgateBase
     {
         $symboly = $comgatePlatba->getSpecifickySymbol() .
             self::SYMBOL_DELIMITER . $comgatePlatba->getVariabilniSymbol();
-        $returnUrl = $this->generateReturnUrl($returnRoute, $symboly);
+        $returnUrl = $this->generateReturnUrl($returnRoute, $comgatePlatba->getSpecifickySymbol(), $symboly);
         $payment = new Payment();
         $payment
             ->setPrice(Money::ofFloat($comgatePlatba->getCastkaCzk()))
             ->setCurrency(CurrencyCode::CZK)
             ->setLabel($comgatePlatba->getPopisPlatby())
-            ->setReferenceId($symboly)
+            ->setReferenceId($comgatePlatba->getSpecifickySymbol()) //vala04 - refId znamená ID zákazníka (např. SS)
+            ->setName($comgatePlatba->getVariabilniSymbol()) //vala04 - API parametr name znamená ID produktu/služby
             ->setFullName($comgatePlatba->getCeleJmenoPlatce())
             ->setEmail($comgatePlatba->getEmailPlatce())
             ->addMethod(self::COMGATE_METHODS)
@@ -86,6 +86,7 @@ final class Comgate extends ComgateBase
     public function overitStavPlatbyPodleRequestu(Request $request): ComgatePlatbaStav
     {
         $transactionId = $request->query->get(self::TRANSACTION_ID_ATRIBUT);
+        $transactionCode = $request->query->get(self::TRANSACTION_CODE_ATRIBUT);
         $referenceId = $request->query->get(self::REFERENCE_ID_ATRIBUT);
         $returningHash = $request->query->get(self::HASH_ATRIBUT);
 
@@ -94,7 +95,7 @@ final class Comgate extends ComgateBase
                 $transactionId . ', Ref. ID: ' . $referenceId);
         }
 
-        if ($this->hashKontrola($referenceId, $returningHash) === null) {
+        if ($this->hashKontrola($referenceId, $transactionCode, $returningHash) === null) {
             throw new ComgateException('Neplatný hash požadavek při návratu z brány. ID: ' .
                 $transactionId . ', Ref. ID: ' . $referenceId);
         }
@@ -121,14 +122,5 @@ final class Comgate extends ComgateBase
         $paymentStatusResponse = $this->client->getStatus($transactionId);
 
         return $this->overitStavPlatby($paymentStatusResponse);
-    }
-
-    /**
-     * @throws ComgateException
-     */
-    protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $referenceId): string
-    {
-        return $this->urlGenerator->generate($returnRoute->getSymfonyRoute(), $returnRoute->getSymfonyRouteParameters(), UrlGeneratorInterface::ABSOLUTE_URL) .
-            '?' . self::HASH_ATRIBUT . '=' . $this->hashKontrola($referenceId) . '&' . self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
     }
 }
