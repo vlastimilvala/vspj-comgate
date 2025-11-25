@@ -46,6 +46,8 @@ class ComgatePlatbaStav
 
     private bool $zaplaceno;
 
+    private bool $zruseno;
+
     private ?DateTime $datumDokonceniPlatby;
 
     public function __construct(
@@ -67,6 +69,7 @@ class ComgatePlatbaStav
         $this->zvyrazneniStavu = $zvyrazneniStavu;
         $this->metodaPlatby = $metodaPlatby;
         $this->zaplaceno = $stav === PaymentStatusCode::PAID;
+        $this->zruseno = $stav === PaymentStatusCode::CANCELLED;
         $this->datumDokonceniPlatby = $this->zaplaceno ? new DateTime() : null;
     }
 
@@ -113,6 +116,11 @@ class ComgatePlatbaStav
     public function jeZaplaceno(): bool
     {
         return $this->zaplaceno;
+    }
+
+    public function jeZruseno(): bool
+    {
+        return $this->zruseno;
     }
 
     public function getDatumDokonceniPlatby(): ?DateTime
