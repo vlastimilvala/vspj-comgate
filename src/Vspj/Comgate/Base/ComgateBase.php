@@ -38,7 +38,7 @@ abstract class ComgateBase
     protected ?Client $client = null;
 
     //vala04 - Platebni brana v testovacim rezimu pro ucely vyvoje. Menit v .env
-    protected bool $testMode;
+    private bool $testMode;
 
     abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse;
 
@@ -67,6 +67,11 @@ abstract class ComgateBase
         }
 
         $this->testMode = $testModeRaw === 'true';
+    }
+
+    public function isTestMode(): bool
+    {
+        return $this->testMode;
     }
 
     /**

@@ -46,7 +46,7 @@ final class Comgate extends ComgateBase
             ->setCategory(CategoryCode::OTHER)
             ->setDelivery(DeliveryCode::ELECTRONIC_DELIVERY)
             ->setInitRecurring(false)
-            ->setTest($this->testMode)
+            ->setTest($this->isTestMode())
             ->setUrlPaid($returnUrl)
             ->setUrlPaidRedirect($returnUrl)
             ->setUrlCancelled($returnUrl)

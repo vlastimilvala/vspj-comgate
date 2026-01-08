@@ -12,7 +12,7 @@ class ComgateReturnRoute
 
     /**
      * @param string $symfonyRoute #Route
-     * @param Object[] $symfonyRouteParameters
+     * @param array $symfonyRouteParameters
      */
     public function __construct(string $symfonyRoute, array $symfonyRouteParameters = [])
     {
@@ -25,9 +25,6 @@ class ComgateReturnRoute
         return $this->symfonyRoute;
     }
 
-    /**
-     * @return Object[]
-     */
     public function getSymfonyRouteParameters(): array
     {
         return $this->symfonyRouteParameters;
