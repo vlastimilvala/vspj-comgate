@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use function getenv;
 use function trim;
 use function sha1;
+use function strtr;
 
 abstract class ComgateBase
 {
@@ -127,13 +128,21 @@ abstract class ComgateBase
      */
     protected function generateReturnUrl(ComgateReturnRoute $returnRoute, string $refId, string $tCode): string
     {
-        return $this->urlGenerator->generate(
+        $returnRoute->setRouteParameter(self::HASH_ATRIBUT, $this->hashKontrola($refId, $tCode));
+        $returnRoute->setRouteParameter(self::TRANSACTION_CODE_ATRIBUT, $tCode);
+        $returnRoute->setRouteParameter(self::TRANSACTION_ID_ATRIBUT, '__TR_ID__');
+        $returnRoute->setRouteParameter(self::REFERENCE_ID_ATRIBUT, '__REF_ID__');
+
+        $url = $this->urlGenerator->generate(
             $returnRoute->getSymfonyRoute(),
             $returnRoute->getSymfonyRouteParameters(),
             UrlGeneratorInterface::ABSOLUTE_URL
-        ) . '?' . self::HASH_ATRIBUT . '=' .
-            $this->hashKontrola($refId, $tCode) . '&' . self::TRANSACTION_CODE_ATRIBUT . '=' . $tCode . '&' .
-            self::TRANSACTION_ID_ATRIBUT . '=${id}&' . self::REFERENCE_ID_ATRIBUT . '=${refId}';
+        );
+
+        return strtr($url, [
+            '__TR_ID__'  => '${id}',
+            '__REF_ID__' => '${refId}',
+        ]);
     }
 
     /**

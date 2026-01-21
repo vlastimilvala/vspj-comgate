@@ -29,4 +29,13 @@ class ComgateReturnRoute
     {
         return $this->symfonyRouteParameters;
     }
+
+    /**
+     * @param string $indexName
+     * @param string|int $value
+     */
+    public function setRouteParameter(string $indexName, $value): void
+    {
+        $this->symfonyRouteParameters[$indexName] = $value;
+    }
 }
