@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
 use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
+use Vspj\PlatebniBrana\Comgate\Helper\ComgatePlaceholder;
 use Comgate\SDK\Client;
 use Comgate\SDK\Comgate;
 use Comgate\SDK\Entity\Codes\PaymentMethodCode;
@@ -16,7 +17,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use function getenv;
 use function trim;
 use function sha1;
-use function strtr;
 
 abstract class ComgateBase
 {
@@ -130,8 +130,8 @@ abstract class ComgateBase
     {
         $returnRoute->setRouteParameter(self::HASH_ATRIBUT, $this->hashKontrola($refId, $tCode));
         $returnRoute->setRouteParameter(self::TRANSACTION_CODE_ATRIBUT, $tCode);
-        $returnRoute->setRouteParameter(self::TRANSACTION_ID_ATRIBUT, '__TR_ID__');
-        $returnRoute->setRouteParameter(self::REFERENCE_ID_ATRIBUT, '__REF_ID__');
+        $returnRoute->setRouteParameter(self::TRANSACTION_ID_ATRIBUT, ComgatePlaceholder::DUMMY_TRANSACTION_ID);
+        $returnRoute->setRouteParameter(self::REFERENCE_ID_ATRIBUT, ComgatePlaceholder::DUMMY_REFERENCE_ID);
 
         $url = $this->urlGenerator->generate(
             $returnRoute->getSymfonyRoute(),
@@ -139,10 +139,7 @@ abstract class ComgateBase
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        return strtr($url, [
-            '__TR_ID__'  => '${id}',
-            '__REF_ID__' => '${refId}',
-        ]);
+        return ComgatePlaceholder::replace($url);
     }
 
     /**
