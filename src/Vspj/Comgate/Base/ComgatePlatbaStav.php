@@ -36,7 +36,7 @@ class ComgatePlatbaStav
     //vala04 - Jedná se o variabilní symbol, který generuje platební brána
     private ?string $vsBrana;
 
-    private string $metodaPlatby;
+    private ?string $metodaPlatby;
 
     private string $stav;
 
@@ -57,7 +57,7 @@ class ComgatePlatbaStav
         string $stav,
         string $popisStavu,
         string $zvyrazneniStavu,
-        string $metodaPlatby,
+        ?string $metodaPlatby = null,
         ?string $vsBrana = null
     ) {
         $this->transakceId = $transakceId;
@@ -93,7 +93,7 @@ class ComgatePlatbaStav
         return $this->vsBrana;
     }
 
-    public function getMetodaPlatby(): string
+    public function getMetodaPlatby(): ?string
     {
         return $this->metodaPlatby;
     }

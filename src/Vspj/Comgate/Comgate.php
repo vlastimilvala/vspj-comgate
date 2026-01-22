@@ -22,13 +22,14 @@ use Symfony\Component\HttpFoundation\Request;
 final class Comgate extends ComgateBase
 {
     /**
-     * Vytvoření platebního požadavku na platební bránu. Dojde k přesměrování na platební bránu.
+     * Vytvoření platebního požadavku
      *
      * @param ComgatePlatba $comgatePlatba Objekt vytvořené šablony platby
      * @param ComgateReturnRoute $returnRoute Objekt návratové Symfony routy (při návratu zpět z platební brány)
+     * @return ComgatePlatbaStav Vrací objekt s nově vytvořeným ID transakce, které je nutné zaevidovat do databáze před provedením přesměrování na platební bránu
      * @throws ComgateException
      */
-    public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse
+    public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): ComgatePlatbaStav
     {
         $symboly = $comgatePlatba->getSpecifickySymbol() .
             self::SYMBOL_DELIMITER . $comgatePlatba->getVariabilniSymbol();
@@ -45,6 +46,7 @@ final class Comgate extends ComgateBase
             ->addMethod(self::COMGATE_METHODS)
             ->setCategory(CategoryCode::OTHER)
             ->setDelivery(DeliveryCode::ELECTRONIC_DELIVERY)
+            ->setExpirationTime($comgatePlatba->getExpiracePlatby())
             ->setInitRecurring(false)
             ->setTest($this->isTestMode())
             ->setUrlPaid($returnUrl)
@@ -59,7 +61,25 @@ final class Comgate extends ComgateBase
             throw new ComgateException($createPaymentResponse->getMessage());
         }
 
-        return new RedirectResponse($createPaymentResponse->getRedirect());
+        $this->paymentSession = $createPaymentResponse;
+
+        return $this->zalozitPlatbu($comgatePlatba, $this->paymentSession->getTransId());
+    }
+
+    /**
+     * Provést přesměrování na platební bránu pro provedení úhrady
+     * Volat až jakmile mám založenou platbu a mám zaevidované ID transakce v databázi
+     *
+     * @return RedirectResponse
+     * @throws ComgateException
+     */
+    public function redirect(): RedirectResponse
+    {
+        if ($this->paymentSession === null) {
+            throw new ComgateException('Nelze provést přesměrování na platební bránu, protože nebyla doposud založena nová platba.');
+        }
+
+        return new RedirectResponse($this->paymentSession->getRedirect());
     }
 
     public function jeNavratovyPozadavek(Request $request): bool
@@ -111,9 +131,9 @@ final class Comgate extends ComgateBase
     }
 
     /**
-     * Ověření stavu již existující (na bráně založené) platby
+     * Ověření stavu existující platby
      *
-     * @param string $transactionId #ID transakce na straně platební brány
+     * @param string $transactionId #ID transakce
      * @return ComgatePlatbaStav
      * @throws ComgateException
      */

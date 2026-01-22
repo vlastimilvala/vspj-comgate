@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vspj\PlatebniBrana\Comgate\Base;
 
+use Comgate\SDK\Entity\Response\PaymentCreateResponse;
 use Vspj\PlatebniBrana\Comgate\Exception\ComgateException;
 use Vspj\PlatebniBrana\Comgate\Helper\ComgatePlaceholder;
 use Comgate\SDK\Client;
@@ -38,10 +39,12 @@ abstract class ComgateBase
 
     protected ?Client $client = null;
 
+    protected ?PaymentCreateResponse $paymentSession = null;
+
     //vala04 - Platebni brana v testovacim rezimu pro ucely vyvoje. Menit v .env
     private bool $testMode;
 
-    abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): RedirectResponse;
+    abstract public function novaPlatba(ComgatePlatba $comgatePlatba, ComgateReturnRoute $returnRoute): ComgatePlatbaStav;
 
     abstract public function jeNavratovyPozadavek(Request $request): bool;
 
@@ -140,6 +143,18 @@ abstract class ComgateBase
         );
 
         return ComgatePlaceholder::replace($url);
+    }
+
+    protected function zalozitPlatbu(ComgatePlatba $comgatePlatba, string $transactionId): ComgatePlatbaStav
+    {
+        return new ComgatePlatbaStav(
+            $transactionId,
+            $comgatePlatba->getSpecifickySymbol(),
+            $comgatePlatba->getVariabilniSymbol(),
+            ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
+            ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
+            ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI
+        );
     }
 
     /**
