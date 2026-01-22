@@ -44,6 +44,9 @@ class ComgatePlatbaStav
 
     private string $zvyrazneniStavu;
 
+    /* True, pokud je nově založená platba (ještě nedošlo k responsu z brány) */
+    private bool $novaPlatba;
+
     private bool $zaplaceno;
 
     private bool $zruseno;
@@ -57,6 +60,7 @@ class ComgatePlatbaStav
         string $stav,
         string $popisStavu,
         string $zvyrazneniStavu,
+        bool $novaPlatba,
         ?string $metodaPlatby = null,
         ?string $vsBrana = null
     ) {
@@ -67,6 +71,7 @@ class ComgatePlatbaStav
         $this->stav = $stav;
         $this->popisStavu = $popisStavu;
         $this->zvyrazneniStavu = $zvyrazneniStavu;
+        $this->novaPlatba = $novaPlatba;
         $this->metodaPlatby = $metodaPlatby;
         $this->zaplaceno = $stav === PaymentStatusCode::PAID;
         $this->zruseno = $stav === PaymentStatusCode::CANCELLED;
@@ -108,9 +113,14 @@ class ComgatePlatbaStav
         return $this->popisStavu;
     }
 
-    public function getZvyrazneniStavu()
+    public function getZvyrazneniStavu(): string
     {
         return $this->zvyrazneniStavu;
+    }
+
+    public function isNovaPlatba(): bool
+    {
+        return $this->novaPlatba;
     }
 
     public function jeZaplaceno(): bool

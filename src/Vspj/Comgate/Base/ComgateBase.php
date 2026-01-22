@@ -153,7 +153,8 @@ abstract class ComgateBase
             $comgatePlatba->getVariabilniSymbol(),
             ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
             ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
-            ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI
+            ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
+            true
         );
     }
 
@@ -173,6 +174,7 @@ abstract class ComgateBase
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZAPLACENO_ZVYRAZNENI,
+                    false,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -184,6 +186,7 @@ abstract class ComgateBase
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_ZRUSENO_ZVYRAZNENI,
+                    false,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -195,6 +198,7 @@ abstract class ComgateBase
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
+                    false,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
@@ -206,6 +210,7 @@ abstract class ComgateBase
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ID,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_POPIS,
                     ComgatePlatbaStav::COMGATE_PLATBA_STAV_AUTORIZOVANO_ZVYRAZNENI,
+                    false,
                     $paymentStatusResponse->getMethod(),
                     $paymentStatusResponse->getVs()
                 );
