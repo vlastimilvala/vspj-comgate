@@ -43,7 +43,7 @@ final class Comgate extends ComgateBase
             ->setName($comgatePlatba->getVariabilniSymbol()) //vala04 - API parametr name znamená ID produktu/služby
             ->setFullName($comgatePlatba->getCeleJmenoPlatce())
             ->setEmail($comgatePlatba->getEmailPlatce())
-            ->addMethod(self::COMGATE_METHODS)
+            ->addMethod($this->getPlatebniMetody($comgatePlatba->isPouzePlatbaKartou()))
             ->setCategory(CategoryCode::OTHER)
             ->setDelivery(DeliveryCode::ELECTRONIC_DELIVERY)
             ->setExpirationTime($comgatePlatba->getExpiracePlatby())

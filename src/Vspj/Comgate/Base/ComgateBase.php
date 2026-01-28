@@ -11,7 +11,6 @@ use Comgate\SDK\Client;
 use Comgate\SDK\Comgate;
 use Comgate\SDK\Entity\Codes\PaymentMethodCode;
 use Comgate\SDK\Entity\Response\PaymentStatusResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -31,9 +30,6 @@ abstract class ComgateBase
     protected const HASH_ATRIBUT = 'hash';
 
     protected const SYMBOL_DELIMITER = '/';
-
-    protected const COMGATE_METHODS = PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
-    PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
 
     protected UrlGeneratorInterface $urlGenerator;
 
@@ -156,6 +152,16 @@ abstract class ComgateBase
             ComgatePlatbaStav::COMGATE_PLATBA_STAV_CEKAJICI_ZVYRAZNENI,
             true
         );
+    }
+
+    protected function getPlatebniMetody(bool $pouzePlatbaKartou): string
+    {
+        if ($pouzePlatbaKartou === true) {
+            return PaymentMethodCode::ALL_CARDS;
+        }
+
+        return PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
+            PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
     }
 
     /**

@@ -18,6 +18,8 @@ class ComgatePlatba
 
     private string $expiracePlatby;
 
+    private bool $pouzePlatbaKartou;
+
     private float $castkaCzk;
 
     /**
@@ -28,6 +30,7 @@ class ComgatePlatba
      * @param string $popisPlatby Popis určení platby
      * @param float $castkaCzk Částka transakce - např. 50,25 Kč napsat jako hodnotu 50.25
      * @param string $expiracePlatby Nepovinný parametr pro expiraci platby (povolené hodnoty např. '30m', '1h', '2d' apod.)
+     * @param bool $pouzePlatbaKartou Uživateli se při vstupu na platební bránu zobrazí platba kartou jako primární metoda
      */
     public function __construct(
         string $specifickySymbol,
@@ -36,7 +39,8 @@ class ComgatePlatba
         string $emailPlatce,
         string $popisPlatby,
         float $castkaCzk,
-        string $expiracePlatby = ''
+        string $expiracePlatby = '',
+        bool $pouzePlatbaKartou = false
     ) {
         $this->specifickySymbol = $specifickySymbol;
         $this->variabilniSymbol = $variabilniSymbol;
@@ -45,6 +49,7 @@ class ComgatePlatba
         $this->popisPlatby = $popisPlatby;
         $this->castkaCzk = $castkaCzk;
         $this->expiracePlatby = $expiracePlatby;
+        $this->pouzePlatbaKartou = $pouzePlatbaKartou;
     }
 
     public function getSpecifickySymbol(): string
@@ -80,5 +85,10 @@ class ComgatePlatba
     public function getExpiracePlatby(): string
     {
         return $this->expiracePlatby;
+    }
+
+    public function isPouzePlatbaKartou(): bool
+    {
+        return $this->pouzePlatbaKartou;
     }
 }
