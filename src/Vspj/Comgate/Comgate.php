@@ -143,4 +143,18 @@ final class Comgate extends ComgateBase
 
         return $this->overitStavPlatby($paymentStatusResponse);
     }
+
+    /**
+     * Dodatečné vygenerování URL na platební bránu pro transakci
+     *
+     * @param string $transactionId ID transakce, na základě které se ověřuje stav platby a generuje URL
+     * @return string Vrací URL směrování na platební bránu
+     * @throws ComgateException Pokud nelze ověřit stav platby na základě ID transakce
+     */
+    public function generovatUrlPlatby(string $transactionId): string
+    {
+        $overenaPlatba = $this->overitStavPlatbyPodleTransakce($transactionId);
+
+        return 'https://payments.comgate.cz/' . $overenaPlatba->getTransakceId();
+    }
 }
