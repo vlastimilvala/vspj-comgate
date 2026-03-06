@@ -150,7 +150,7 @@ final class Comgate extends ComgateBase
      * @param string $transactionId ID transakce, na základě které se ověřuje stav platby a generuje URL
      * @return string Vrací URL směrování na platební bránu
      */
-    public function generovatUrlPlatby(string $transactionId): string
+    public static function generovatUrlPlatby(string $transactionId): string
     {
         return 'https://payments.comgate.cz/' . $transactionId;
     }
