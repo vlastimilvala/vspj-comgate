@@ -154,14 +154,22 @@ abstract class ComgateBase
         );
     }
 
-    protected function getPlatebniMetody(bool $pouzePlatbaKartou): string
+    protected function getPlatebniMetody(bool $pouzePlatbaKartou, bool $umoznitBeznyBankovniPrevod = false): string
     {
         if ($pouzePlatbaKartou === true) {
             return PaymentMethodCode::ALL_CARDS;
         }
 
-        return PaymentMethodCode::ALL . ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
-            PaymentMethodCode::PART_ALL . ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
+        $platebniMetody = PaymentMethodCode::ALL;
+
+        if ($umoznitBeznyBankovniPrevod === false) {
+            $platebniMetody .= ' - ' . PaymentMethodCode::BANK_OTHER_CZ_TRANSFER;
+        }
+
+        $platebniMetody .= ' - ' . PaymentMethodCode::LOAN_ALL . ' - ' . PaymentMethodCode::LATER_ALL . ' - ' .
+            PaymentMethodCode::PART_ALL . ' - BANK_CZ_AB_CVAK - PART_TWISTO - PART_ESSOX';
+
+        return $platebniMetody;
     }
 
     /**

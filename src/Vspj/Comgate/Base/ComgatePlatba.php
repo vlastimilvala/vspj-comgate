@@ -20,6 +20,8 @@ class ComgatePlatba
 
     private bool $pouzePlatbaKartou;
 
+    private bool $umoznitBeznyBankovniPrevod;
+
     private float $castkaCzk;
 
     /**
@@ -31,6 +33,7 @@ class ComgatePlatba
      * @param float $castkaCzk Částka transakce - např. 50,25 Kč napsat jako hodnotu 50.25
      * @param string $expiracePlatby Nepovinný parametr pro expiraci platby (povolené hodnoty např. '30m', '1h', '2d' apod.)
      * @param bool $pouzePlatbaKartou Uživateli se při vstupu na platební bránu zobrazí platba kartou jako primární metoda
+     * @param bool $umoznitBeznyBankovniPrevod Uživatel bude mít k dispozici volbu 'Ostatní banky' pro běžný převod. Expirace platby musí byt nastavena minimálně na 4d.
      */
     public function __construct(
         string $specifickySymbol,
@@ -40,7 +43,8 @@ class ComgatePlatba
         string $popisPlatby,
         float $castkaCzk,
         string $expiracePlatby = '',
-        bool $pouzePlatbaKartou = false
+        bool $pouzePlatbaKartou = false,
+        bool $umoznitBeznyBankovniPrevod = false
     ) {
         $this->specifickySymbol = $specifickySymbol;
         $this->variabilniSymbol = $variabilniSymbol;
@@ -50,6 +54,7 @@ class ComgatePlatba
         $this->castkaCzk = $castkaCzk;
         $this->expiracePlatby = $expiracePlatby;
         $this->pouzePlatbaKartou = $pouzePlatbaKartou;
+        $this->umoznitBeznyBankovniPrevod = $umoznitBeznyBankovniPrevod;
     }
 
     public function getSpecifickySymbol(): string
@@ -90,5 +95,10 @@ class ComgatePlatba
     public function isPouzePlatbaKartou(): bool
     {
         return $this->pouzePlatbaKartou;
+    }
+
+    public function umoznitBeznyBankovniPrevod(): bool
+    {
+        return $this->umoznitBeznyBankovniPrevod;
     }
 }
